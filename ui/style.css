@@ -80,3 +80,38 @@ input[type=checkbox] { width: 16px; height: 16px; cursor: pointer; }
 .meta-bar span { font-size: 12px; background: var(--bg); border: 1px solid var(--border); padding: 3px 10px; border-radius: 20px; color: var(--muted); }
 
 .empty-state { color: var(--muted); text-align: center; margin-top: 80px; font-size: 15px; }
+
+/* Rankings */
+.header-actions { display: flex; gap: 8px; align-items: center; }
+.upload-btn { cursor: pointer; }
+
+.stat-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; margin-bottom: 24px; }
+.stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px 20px; }
+.stat-card .stat-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+.stat-card .stat-value { font-size: 26px; font-weight: 700; }
+.stat-card .stat-sub { font-size: 11px; color: var(--muted); margin-top: 4px; }
+.stat-card.accent { border-color: var(--accent); }
+
+.filter-bar { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+.filter-bar input { flex: 1; min-width: 200px; }
+.filter-bar select { background: var(--surface); border: 1px solid var(--border); color: var(--text); padding: 8px 12px; border-radius: 7px; font-size: 13px; }
+
+/* Position badges */
+.pos-badge { display: inline-block; padding: 2px 9px; border-radius: 20px; font-size: 12px; font-weight: 700; }
+.pos-top3 { background: rgba(0,212,170,0.15); color: var(--success); }
+.pos-top10 { background: rgba(108,99,255,0.15); color: var(--accent); }
+.pos-top20 { background: rgba(245,166,35,0.15); color: var(--warn); }
+.pos-beyond { background: rgba(255,79,106,0.12); color: var(--danger); }
+
+.sortable { cursor: pointer; user-select: none; }
+.sortable:hover { color: var(--text); }
+.sort-icon { opacity: 0.4; font-size: 10px; }
+.sort-active .sort-icon { opacity: 1; color: var(--accent); }
+
+.page-slug { font-family: 'Courier New', monospace; font-size: 11px; color: var(--muted); max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block; }
+
+/* Help box */
+.help-box { background: var(--surface); border: 1px solid var(--accent); border-radius: var(--radius); padding: 24px 28px; max-width: 560px; margin-top: 20px; position: relative; }
+.help-box h3 { font-size: 15px; margin-bottom: 14px; }
+.help-box ol { padding-left: 20px; line-height: 1.9; color: #c0c4d8; font-size: 13px; }
+.help-close { position: absolute; top: 12px; right: 14px; background: none; border: none; color: var(--muted); font-size: 16px; cursor: pointer; }

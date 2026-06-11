@@ -266,8 +266,188 @@ document.getElementById('btn-run-diff').addEventListener('click', () => {
   alert('In production, this runs /competitor-diff via the Claude Code CLI.\n\nCommand: claude -p "Run the competitor-diff command" --allowedTools Read,Write,Bash');
 });
 
+// ----- Rankings -----
+
+let rankingsData = [];
+let rankingsSort = { col: 'position', dir: 'asc' };
+
+const DEMO_RANKINGS = [
+  { query: 'esim japan', page: '/esim-japan', position: 4.2, impressions: 1840, clicks: 62, ctr: 3.4 },
+  { query: 'japan esim plans', page: '/esim-japan', position: 6.7, impressions: 920, clicks: 28, ctr: 3.0 },
+  { query: 'best esim for japan', page: '/esim-japan', position: 11.3, impressions: 640, clicks: 9, ctr: 1.4 },
+  { query: 'esim turkey', page: '/esim-turkey', position: 18.5, impressions: 510, clicks: 4, ctr: 0.8 },
+  { query: 'turkey esim plans', page: '/esim-turkey', position: 22.1, impressions: 390, clicks: 2, ctr: 0.5 },
+  { query: 'esim saudi arabia', page: '/esim-saudi-arabia', position: 31.4, impressions: 280, clicks: 1, ctr: 0.4 },
+  { query: 'esim uae', page: '/esim-uae', position: 28.9, impressions: 310, clicks: 1, ctr: 0.3 },
+  { query: 'airalo japan alternative', page: '/esim-japan', position: 7.8, impressions: 720, clicks: 21, ctr: 2.9 },
+  { query: 'holafly vs airalo japan', page: '/esim-japan', position: 3.1, impressions: 430, clicks: 38, ctr: 8.8 },
+  { query: 'cheap esim japan', page: '/esim-japan', position: 9.4, impressions: 580, clicks: 14, ctr: 2.4 },
+];
+
+function posBadge(pos) {
+  if (pos <= 3)  return `<span class="pos-badge pos-top3">#${pos.toFixed(1)}</span>`;
+  if (pos <= 10) return `<span class="pos-badge pos-top10">#${pos.toFixed(1)}</span>`;
+  if (pos <= 20) return `<span class="pos-badge pos-top20">#${pos.toFixed(1)}</span>`;
+  return `<span class="pos-badge pos-beyond">#${pos.toFixed(1)}</span>`;
+}
+
+function posStatus(pos) {
+  if (pos <= 3)  return '<span style="color:var(--success);font-size:11px">Top 3</span>';
+  if (pos <= 10) return '<span style="color:var(--accent);font-size:11px">Page 1</span>';
+  if (pos <= 20) return '<span style="color:var(--warn);font-size:11px">Page 2</span>';
+  return '<span style="color:var(--danger);font-size:11px">Beyond p2</span>';
+}
+
+function renderRankingsStats(data) {
+  const statsEl = document.getElementById('rankings-stats');
+  if (!data.length) { statsEl.innerHTML = ''; return; }
+  const avgPos = (data.reduce((s, r) => s + r.position, 0) / data.length).toFixed(1);
+  const totalClicks = data.reduce((s, r) => s + r.clicks, 0);
+  const totalImpressions = data.reduce((s, r) => s + r.impressions, 0);
+  const avgCtr = totalImpressions ? ((totalClicks / totalImpressions) * 100).toFixed(1) : '0.0';
+  const top10 = data.filter(r => r.position <= 10).length;
+  statsEl.innerHTML = `
+    <div class="stat-card accent"><div class="stat-label">Keywords tracked</div><div class="stat-value">${data.length}</div></div>
+    <div class="stat-card"><div class="stat-label">Avg position</div><div class="stat-value">${avgPos}</div></div>
+    <div class="stat-card"><div class="stat-label">Total clicks</div><div class="stat-value">${totalClicks.toLocaleString()}</div></div>
+    <div class="stat-card"><div class="stat-label">Impressions</div><div class="stat-value">${totalImpressions.toLocaleString()}</div></div>
+    <div class="stat-card"><div class="stat-label">Avg CTR</div><div class="stat-value">${avgCtr}%</div></div>
+    <div class="stat-card"><div class="stat-label">On page 1</div><div class="stat-value">${top10}</div><div class="stat-sub">of ${data.length} keywords</div></div>
+  `;
+}
+
+function renderRankingsTable(data) {
+  const empty = document.getElementById('rankings-empty');
+  const table = document.getElementById('rankings-table');
+  if (!data.length) { empty.style.display = 'block'; table.style.display = 'none'; return; }
+  empty.style.display = 'none';
+  table.style.display = '';
+
+  // Sort
+  const sorted = [...data].sort((a, b) => {
+    let av = a[rankingsSort.col], bv = b[rankingsSort.col];
+    if (typeof av === 'string') av = av.toLowerCase(), bv = bv.toLowerCase();
+    return rankingsSort.dir === 'asc' ? (av > bv ? 1 : -1) : (av < bv ? 1 : -1);
+  });
+
+  document.getElementById('rankings-body').innerHTML = sorted.map(r => `
+    <tr>
+      <td>${r.query}</td>
+      <td><span class="page-slug">${r.page}</span></td>
+      <td>${posBadge(r.position)}</td>
+      <td>${r.impressions.toLocaleString()}</td>
+      <td>${r.clicks.toLocaleString()}</td>
+      <td>${r.ctr.toFixed(1)}%</td>
+      <td>${posStatus(r.position)}</td>
+    </tr>
+  `).join('');
+
+  // Update sort icons
+  document.querySelectorAll('#rankings-table th.sortable').forEach(th => {
+    th.classList.remove('sort-active');
+    if (th.dataset.col === rankingsSort.col) th.classList.add('sort-active');
+  });
+}
+
+function applyRankingsFilters() {
+  const text = document.getElementById('rankings-filter').value.toLowerCase();
+  const pos = document.getElementById('rankings-pos-filter').value;
+  const page = document.getElementById('rankings-page-filter').value;
+  let filtered = rankingsData.filter(r => {
+    if (text && !r.query.includes(text) && !r.page.includes(text)) return false;
+    if (pos === 'top3' && r.position > 3) return false;
+    if (pos === 'top10' && r.position > 10) return false;
+    if (pos === 'top20' && (r.position <= 10 || r.position > 20)) return false;
+    if (pos === 'beyond' && r.position <= 20) return false;
+    if (page !== 'all' && r.page !== page) return false;
+    return true;
+  });
+  renderRankingsStats(filtered);
+  renderRankingsTable(filtered);
+}
+
+function loadRankingsData(data) {
+  rankingsData = data;
+  // Populate page filter
+  const pages = [...new Set(data.map(r => r.page))].sort();
+  const sel = document.getElementById('rankings-page-filter');
+  sel.innerHTML = '<option value="all">All pages</option>' +
+    pages.map(p => `<option value="${p}">${p}</option>`).join('');
+  applyRankingsFilters();
+}
+
+function parseGscCsv(text) {
+  const lines = text.trim().split('\n').filter(Boolean);
+  if (!lines.length) return [];
+  const header = lines[0].split(',').map(h => h.replace(/"/g, '').trim().toLowerCase());
+  const qIdx = header.findIndex(h => h.includes('query') || h.includes('top queries'));
+  const pageIdx = header.findIndex(h => h.includes('page') || h.includes('landing'));
+  const clickIdx = header.findIndex(h => h.includes('click'));
+  const impIdx = header.findIndex(h => h.includes('impression'));
+  const ctrIdx = header.findIndex(h => h.includes('ctr'));
+  const posIdx = header.findIndex(h => h.includes('position'));
+
+  const rows = [];
+  for (let i = 1; i < lines.length; i++) {
+    const cols = lines[i].split(',').map(c => c.replace(/"/g, '').trim());
+    const query = cols[qIdx] || '';
+    if (!query || query.toLowerCase() === 'top queries') continue;
+    rows.push({
+      query,
+      page: pageIdx >= 0 ? (cols[pageIdx] || '—') : '—',
+      clicks: parseInt(cols[clickIdx]) || 0,
+      impressions: parseInt(cols[impIdx]) || 0,
+      ctr: parseFloat((cols[ctrIdx] || '0').replace('%', '')) || 0,
+      position: parseFloat(cols[posIdx]) || 0,
+    });
+  }
+  return rows;
+}
+
+// CSV upload
+document.getElementById('gsc-upload').addEventListener('change', e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    const parsed = parseGscCsv(ev.target.result);
+    if (!parsed.length) { alert('Could not parse file. Make sure it\'s a GSC CSV export (Queries tab).'); return; }
+    loadRankingsData(parsed);
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+});
+
+// Sort headers
+document.querySelectorAll('#rankings-table th.sortable').forEach(th => {
+  th.addEventListener('click', () => {
+    if (rankingsSort.col === th.dataset.col) {
+      rankingsSort.dir = rankingsSort.dir === 'asc' ? 'desc' : 'asc';
+    } else {
+      rankingsSort.col = th.dataset.col;
+      rankingsSort.dir = th.dataset.col === 'position' ? 'asc' : 'desc';
+    }
+    applyRankingsFilters();
+  });
+});
+
+// Filters
+document.getElementById('rankings-filter').addEventListener('input', applyRankingsFilters);
+document.getElementById('rankings-pos-filter').addEventListener('change', applyRankingsFilters);
+document.getElementById('rankings-page-filter').addEventListener('change', applyRankingsFilters);
+
+// Help box toggle
+document.getElementById('btn-gsc-help').addEventListener('click', () => {
+  const box = document.getElementById('gsc-help-box');
+  box.style.display = box.style.display === 'none' ? 'block' : 'none';
+});
+document.getElementById('help-close').addEventListener('click', () => {
+  document.getElementById('gsc-help-box').style.display = 'none';
+});
+
 // ----- Init -----
 renderPages();
 renderPricingTable();
 renderCompetitorTable();
 populateCountrySelect();
+loadRankingsData(DEMO_RANKINGS);

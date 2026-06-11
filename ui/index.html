@@ -11,6 +11,7 @@
     <div class="logo">KloudeSIM<span>SEO</span></div>
     <nav>
       <a href="#" class="nav-link active" data-view="pages">Pages</a>
+      <a href="#" class="nav-link" data-view="rankings">Rankings</a>
       <a href="#" class="nav-link" data-view="pricing">Pricing Data</a>
       <a href="#" class="nav-link" data-view="competitors">Competitor Tracker</a>
       <a href="#" class="nav-link" data-view="generate">Generate</a>
@@ -30,6 +31,70 @@
       </header>
       <div id="pages-list" class="card-grid"></div>
       <p id="pages-empty" class="empty-state" style="display:none">No pages generated yet. Click <strong>+ New Page</strong> to start.</p>
+    </section>
+
+    <!-- Rankings view -->
+    <section id="view-rankings" class="view">
+      <header class="view-header">
+        <h1>Rankings</h1>
+        <div class="header-actions">
+          <label class="btn-secondary upload-btn">
+            Import GSC CSV <input type="file" id="gsc-upload" accept=".csv" style="display:none" />
+          </label>
+          <button class="btn-secondary" id="btn-gsc-help">How to export</button>
+        </div>
+      </header>
+
+      <!-- Summary stat cards -->
+      <div class="stat-row" id="rankings-stats"></div>
+
+      <!-- Filter bar -->
+      <div class="filter-bar">
+        <input type="text" id="rankings-filter" placeholder="Filter by keyword or page..." />
+        <select id="rankings-pos-filter">
+          <option value="all">All positions</option>
+          <option value="top3">Top 3</option>
+          <option value="top10">Top 10</option>
+          <option value="top20">11–20</option>
+          <option value="beyond">Beyond 20</option>
+        </select>
+        <select id="rankings-page-filter"><option value="all">All pages</option></select>
+      </div>
+
+      <div class="table-wrap">
+        <table id="rankings-table">
+          <thead>
+            <tr>
+              <th class="sortable" data-col="query">Keyword <span class="sort-icon">↕</span></th>
+              <th class="sortable" data-col="page">Page <span class="sort-icon">↕</span></th>
+              <th class="sortable" data-col="position">Position <span class="sort-icon">↕</span></th>
+              <th class="sortable" data-col="impressions">Impressions <span class="sort-icon">↕</span></th>
+              <th class="sortable" data-col="clicks">Clicks <span class="sort-icon">↕</span></th>
+              <th class="sortable" data-col="ctr">CTR <span class="sort-icon">↕</span></th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="rankings-body"></tbody>
+        </table>
+      </div>
+      <p id="rankings-empty" class="empty-state">
+        No ranking data yet.<br><br>
+        Export your data from <strong>Google Search Console → Performance → Export</strong> and import the CSV above.
+      </p>
+      <div id="gsc-help-box" class="help-box" style="display:none">
+        <button class="help-close" id="help-close">✕</button>
+        <h3>How to export from Google Search Console</h3>
+        <ol>
+          <li>Go to <strong>search.google.com/search-console</strong></li>
+          <li>Select your property (kloudesim.com)</li>
+          <li>Click <strong>Performance</strong> in the left sidebar</li>
+          <li>Set date range (last 28 days recommended)</li>
+          <li>Make sure <strong>Queries</strong> and <strong>Pages</strong> are toggled on</li>
+          <li>Click the <strong>Export ↓</strong> button → <strong>Download CSV</strong></li>
+          <li>Import that file here</li>
+        </ol>
+        <p style="margin-top:12px;color:var(--muted);font-size:12px">GSC exports contain: Top queries, Top pages, Countries, Devices. This dashboard reads the "Top queries" sheet.</p>
+      </div>
     </section>
 
     <!-- Pricing view -->
