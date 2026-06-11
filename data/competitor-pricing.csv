@@ -1,0 +1,10 @@
+country,competitor,plan_name,data_gb,validity_days,price_gbp,tethering,topup,checked_date,source_url
+Japan,Airalo,Moshi Moshi 5GB,5,30,9.50,yes,yes,2026-06-01,https://www.airalo.com/japan-esim
+Japan,Airalo,Moshi Moshi 10GB,10,30,17.50,yes,yes,2026-06-01,https://www.airalo.com/japan-esim
+Japan,Holafly,Unlimited 30 days,unlimited,30,47.00,limited 500MB/day,no,2026-06-01,https://esim.holafly.com/esim-japan/
+Turkey,Airalo,Merhaba 5GB,5,30,11.00,yes,yes,2026-06-01,https://www.airalo.com/turkey-esim
+Turkey,Holafly,Unlimited 30 days,unlimited,30,47.00,limited 500MB/day,no,2026-06-01,https://esim.holafly.com/esim-turkey/
+Saudi Arabia,Airalo,Red Sand 5GB,5,30,12.50,yes,yes,2026-06-01,https://www.airalo.com/saudi-arabia-esim
+Saudi Arabia,Holafly,Unlimited 30 days,unlimited,30,51.00,limited 500MB/day,no,2026-06-01,https://esim.holafly.com/esim-saudi-arabia/
+UAE,Airalo,Burj Mobile 5GB,5,30,13.00,yes,yes,2026-06-01,https://www.airalo.com/uae-esim
+UAE,Holafly,Unlimited 30 days,unlimited,30,51.00,limited 500MB/day,no,2026-06-01,https://esim.holafly.com/esim-uae/

@@ -1,0 +1,11 @@
+country,country_slug,region,plan_name,data_gb,validity_days,price_gbp,networks,tethering,topup,notes
+Japan,japan,Asia,Traveller 5,5,30,8.99,"NTT Docomo, SoftBank",yes,yes,
+Japan,japan,Asia,Traveller 10,10,30,14.99,"NTT Docomo, SoftBank",yes,yes,best value
+Japan,japan,Asia,Traveller 20,20,30,24.99,"NTT Docomo, SoftBank",yes,yes,
+Turkey,turkey,Europe,Traveller 5,5,30,9.99,"Turkcell, Vodafone TR",yes,yes,
+Turkey,turkey,Europe,Traveller 10,10,30,15.99,"Turkcell, Vodafone TR",yes,yes,best value
+UAE,uae,Middle East,Traveller 5,5,30,11.99,"Etisalat, du",yes,yes,VoIP restrictions apply locally
+UAE,uae,Middle East,Traveller 10,10,30,18.99,"Etisalat, du",yes,yes,
+Saudi Arabia,saudi-arabia,Middle East,Traveller 5,5,30,10.99,"STC, Mobily",yes,yes,popular for Umrah travel
+Saudi Arabia,saudi-arabia,Middle East,Traveller 10,10,30,16.99,"STC, Mobily",yes,yes,best value
+Saudi Arabia,saudi-arabia,Middle East,Traveller 20,20,30,27.99,"STC, Mobily",yes,yes,
