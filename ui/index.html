@@ -15,6 +15,7 @@
       <a href="#" class="nav-link" data-view="pricing">Pricing Data</a>
       <a href="#" class="nav-link" data-view="competitors">Competitor Tracker</a>
       <a href="#" class="nav-link" data-view="generate">Generate</a>
+      <a href="#" class="nav-link" data-view="howto">How To</a>
     </nav>
     <div class="sidebar-footer">
       <button id="btn-batch" class="btn-secondary">Batch Generate</button>
@@ -45,18 +46,17 @@
         </div>
       </header>
 
-      <!-- Summary stat cards -->
       <div class="stat-row" id="rankings-stats"></div>
 
-      <!-- Filter bar -->
       <div class="filter-bar">
         <input type="text" id="rankings-filter" placeholder="Filter by keyword or page..." />
         <select id="rankings-pos-filter">
           <option value="all">All positions</option>
           <option value="top3">Top 3</option>
-          <option value="top10">Top 10</option>
-          <option value="top20">11–20</option>
+          <option value="top10">Page 1 (top 10)</option>
+          <option value="top20">Page 2 (11–20)</option>
           <option value="beyond">Beyond 20</option>
+          <option value="quickwin">⚡ Quick Wins only</option>
         </select>
         <select id="rankings-page-filter"><option value="all">All pages</option></select>
       </div>
@@ -68,6 +68,7 @@
               <th class="sortable" data-col="query">Keyword <span class="sort-icon">↕</span></th>
               <th class="sortable" data-col="page">Page <span class="sort-icon">↕</span></th>
               <th class="sortable" data-col="position">Position <span class="sort-icon">↕</span></th>
+              <th>Trend</th>
               <th class="sortable" data-col="impressions">Impressions <span class="sort-icon">↕</span></th>
               <th class="sortable" data-col="clicks">Clicks <span class="sort-icon">↕</span></th>
               <th class="sortable" data-col="ctr">CTR <span class="sort-icon">↕</span></th>
@@ -91,9 +92,9 @@
           <li>Set date range (last 28 days recommended)</li>
           <li>Make sure <strong>Queries</strong> and <strong>Pages</strong> are toggled on</li>
           <li>Click the <strong>Export ↓</strong> button → <strong>Download CSV</strong></li>
-          <li>Import that file here</li>
+          <li>Import that file here — previous data is saved automatically for trend tracking</li>
         </ol>
-        <p style="margin-top:12px;color:var(--muted);font-size:12px">GSC exports contain: Top queries, Top pages, Countries, Devices. This dashboard reads the "Top queries" sheet.</p>
+        <p style="margin-top:12px;color:var(--muted);font-size:12px">Each import saves the current data as "previous" so the next import shows ▲/▼ trends. Data is stored in your browser (localStorage) — nothing is sent anywhere.</p>
       </div>
     </section>
 
@@ -122,6 +123,112 @@
         <input type="checkbox" id="gen-force" />
         <button class="btn-primary" style="margin-top:24px" id="btn-run-generate">Generate Page</button>
         <div id="gen-output" class="log-box" style="display:none"></div>
+      </div>
+    </section>
+
+    <!-- How To view -->
+    <section id="view-howto" class="view">
+      <header class="view-header"><h1>How To Use the SEO Agent</h1></header>
+      <div class="howto-body">
+
+        <div class="howto-section">
+          <h2>What this agent does</h2>
+          <p>The KloudeSIM SEO Agent generates programmatic, SEO and GEO-optimised landing pages for every destination you sell eSIMs to. Each page is built from your real pricing data — never invented — and includes an honest Holafly/Airalo comparison that makes it more likely to be cited by AI assistants (Google AI Overviews, Perplexity, ChatGPT).</p>
+          <p>One agent run produces a complete page: title, meta description, pricing table, competitor comparison, coverage section, install guide, FAQ, and JSON-LD schema. The humanising pass removes AI tells so the copy reads like it was written by a person.</p>
+        </div>
+
+        <div class="howto-section">
+          <h2>Setup (one-time)</h2>
+          <ol>
+            <li>Install Claude Code: <code>npm install -g @anthropic-ai/claude-code</code></li>
+            <li>Authenticate: <code>claude</code> and follow the login prompt</li>
+            <li>Clone the repo and <code>cd</code> into it</li>
+            <li>Replace placeholder prices in <code>data/kloudesim-pricing.csv</code> with your real plans</li>
+            <li>Update source URLs in <code>data/competitor-pricing.csv</code>, then run <code>/competitor-diff</code> to pull live prices</li>
+          </ol>
+        </div>
+
+        <div class="howto-section">
+          <h2>Commands</h2>
+          <div class="cmd-grid">
+            <div class="cmd-card">
+              <div class="cmd-name">/generate-destination &lt;country&gt;</div>
+              <div class="cmd-desc">Generate a single destination page interactively. Claude reads your pricing data, writes the full page, runs a humanising pass, self-checks it, and saves to <code>output/esim-{slug}.md</code>.</div>
+              <div class="cmd-example">Example: <code>/generate-destination Japan</code></div>
+            </div>
+            <div class="cmd-card">
+              <div class="cmd-name">/batch-generate [region]</div>
+              <div class="cmd-desc">Generates all missing destination pages in one run. Shows you the to-do list before starting. Optionally filter by region (Asia, Middle East, Europe). Each page gets its own full workflow — no copy-paste templating.</div>
+              <div class="cmd-example">Example: <code>/batch-generate Middle East</code></div>
+            </div>
+            <div class="cmd-card">
+              <div class="cmd-name">/competitor-diff</div>
+              <div class="cmd-desc">Fetches current prices from Airalo and Holafly for all tracked destinations, diffs against your CSV, updates it, and reports which pages have stale competitor data that needs regenerating.</div>
+              <div class="cmd-example">Run weekly to keep comparison tables current</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="howto-section">
+          <h2>Headless batch (cron / GitHub Actions)</h2>
+          <p>Run <code>python scripts/generate_pages.py</code> without opening Claude Code. Each destination gets a fresh Claude session so the humanising pass is never shortcut.</p>
+          <div class="code-block">
+# All missing pages
+python scripts/generate_pages.py
+
+# Filter by region
+python scripts/generate_pages.py --region "Middle East"
+
+# Specific destinations only
+python scripts/generate_pages.py --only japan turkey
+
+# Force regenerate even if file exists
+python scripts/generate_pages.py --force</div>
+        </div>
+
+        <div class="howto-section">
+          <h2>Rankings — Trend Arrows</h2>
+          <p>Every time you import a GSC CSV, the previous import is automatically saved in your browser. The next import shows <span class="trend-up">▲</span> / <span class="trend-down">▼</span> deltas next to each position so you can see week-on-week movement at a glance. Nothing is sent to any server — data lives in <code>localStorage</code>.</p>
+          <p><strong>To track trends:</strong> export and import your GSC CSV once a week. The dashboard does the rest.</p>
+        </div>
+
+        <div class="howto-section">
+          <h2>Rankings — Quick Wins ⚡</h2>
+          <p>Keywords ranked <strong>position 4–15 with 500+ impressions</strong> are flagged as Quick Wins. These pages are already visible to searchers but not yet winning the click. A targeted content update — stronger title, more specific FAQ, fresher competitor comparison — is usually enough to push them onto page 1.</p>
+          <p>Use the <strong>⚡ Quick Wins only</strong> filter in the Rankings view to isolate these keywords.</p>
+        </div>
+
+        <div class="howto-section">
+          <h2>Rankings — CTR vs Expected</h2>
+          <p>Each keyword shows your actual CTR compared to the industry average for that position. If a keyword shows <span class="ctr-bad">▼ below expected</span>, your title or meta description is underperforming — searchers are seeing your page but not clicking it.</p>
+          <table class="howto-table">
+            <thead><tr><th>Position</th><th>Expected CTR</th><th>What to do if below</th></tr></thead>
+            <tbody>
+              <tr><td>1</td><td>~28%</td><td>Add a price or number to your title</td></tr>
+              <tr><td>2–3</td><td>11–16%</td><td>Test a stronger value prop in the meta</td></tr>
+              <tr><td>4–10</td><td>3–8%</td><td>Regenerate the page with updated pricing/competitor data</td></tr>
+              <tr><td>11–20</td><td>~1.5%</td><td>Focus on moving to page 1 first, then fix CTR</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="howto-section">
+          <h2>Page generation rules (hard limits)</h2>
+          <ul>
+            <li><strong>Never fabricates data.</strong> If a price, network name, or coverage fact isn't in your CSV, the agent flags it as <code>[NEEDS DATA: x]</code> rather than inventing it.</li>
+            <li><strong>UK English throughout.</strong> Customise, organise, travelling.</li>
+            <li><strong>Competitor prices carry a date.</strong> Data older than 30 days triggers a stale warning and blocks publishing.</li>
+            <li><strong>One page per destination per run.</strong> Batches call the skill once per country — no templating across destinations.</li>
+            <li><strong>Self-check before saving.</strong> Title ≤ 60 chars, meta 140–155 chars, one H1, comparison table present, FAQPage + Product JSON-LD valid, 3–5 internal links.</li>
+          </ul>
+        </div>
+
+        <div class="howto-section">
+          <h2>Publishing to your CMS</h2>
+          <p>Generated pages land in <code>output/esim-{slug}.md</code> with full YAML frontmatter. The frontmatter includes <code>title</code>, <code>meta_description</code>, <code>slug</code>, <code>country</code>, <code>region</code>, <code>last_updated</code>, and <code>lowest_price_gbp</code> — everything a headless CMS (Contentful, Sanity, WordPress REST API) needs to ingest automatically.</p>
+          <p>Add a <code>/publish</code> command or CI step that reads <code>output/*.md</code> and pushes via your CMS API to complete the pipeline.</p>
+        </div>
+
       </div>
     </section>
   </main>

@@ -115,3 +115,39 @@ input[type=checkbox] { width: 16px; height: 16px; cursor: pointer; }
 .help-box h3 { font-size: 15px; margin-bottom: 14px; }
 .help-box ol { padding-left: 20px; line-height: 1.9; color: #c0c4d8; font-size: 13px; }
 .help-close { position: absolute; top: 12px; right: 14px; background: none; border: none; color: var(--muted); font-size: 16px; cursor: pointer; }
+
+/* Trend arrows */
+.trend-up   { color: var(--success); font-weight: 700; font-size: 12px; }
+.trend-down { color: var(--danger);  font-weight: 700; font-size: 12px; }
+.trend-flat { color: var(--muted);   font-size: 12px; }
+.trend-none { color: var(--border);  font-size: 12px; }
+
+/* CTR vs expected */
+.ctr-bad  { font-size: 11px; color: var(--danger); }
+.ctr-good { font-size: 11px; color: var(--success); }
+.ctr-ok   { font-size: 11px; color: var(--muted); }
+
+/* Opportunity badges */
+.opp-badge { display: inline-block; padding: 1px 7px; border-radius: 20px; font-size: 10px; font-weight: 700; margin-left: 6px; cursor: help; }
+.opp-quickwin { background: rgba(245,166,35,0.2); color: var(--warn); border: 1px solid rgba(245,166,35,0.4); }
+.opp-watch    { background: rgba(108,99,255,0.12); color: var(--accent); border: 1px solid rgba(108,99,255,0.3); }
+.row-quickwin { background: rgba(245,166,35,0.04); }
+.row-quickwin:hover td { background: rgba(245,166,35,0.07) !important; }
+
+/* How To page */
+.howto-body { max-width: 820px; }
+.howto-section { margin-bottom: 40px; }
+.howto-section h2 { font-size: 17px; font-weight: 700; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border); color: var(--accent); }
+.howto-section p { color: #c0c4d8; line-height: 1.75; margin-bottom: 10px; font-size: 14px; }
+.howto-section ol, .howto-section ul { padding-left: 22px; color: #c0c4d8; line-height: 1.9; font-size: 14px; }
+.howto-section li { margin-bottom: 4px; }
+.howto-section code { background: var(--border); padding: 2px 6px; border-radius: 4px; font-family: 'Courier New', monospace; font-size: 12px; color: var(--accent2); }
+.code-block { background: #0a0c12; border: 1px solid var(--border); border-radius: 7px; padding: 16px 20px; font-family: 'Courier New', monospace; font-size: 12px; color: var(--accent2); white-space: pre; overflow-x: auto; margin-top: 12px; line-height: 1.7; }
+.cmd-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 14px; margin-top: 4px; }
+.cmd-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; }
+.cmd-name { font-family: 'Courier New', monospace; font-size: 13px; font-weight: 700; color: var(--accent2); margin-bottom: 8px; }
+.cmd-desc { font-size: 13px; color: #c0c4d8; line-height: 1.6; margin-bottom: 10px; }
+.cmd-example { font-size: 11px; color: var(--muted); font-style: italic; }
+.howto-table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 13px; }
+.howto-table th { background: var(--border); padding: 8px 12px; text-align: left; font-size: 11px; text-transform: uppercase; color: var(--muted); }
+.howto-table td { padding: 9px 12px; border-bottom: 1px solid var(--border); color: #c0c4d8; }

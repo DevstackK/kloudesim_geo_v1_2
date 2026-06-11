@@ -268,8 +268,55 @@ document.getElementById('btn-run-diff').addEventListener('click', () => {
 
 // ----- Rankings -----
 
+// Expected CTR by rounded position (industry averages)
+const EXPECTED_CTR = { 1:28.5, 2:15.7, 3:11.0, 4:8.0, 5:7.2, 6:6.1, 7:4.9, 8:3.9, 9:3.3, 10:2.6 };
+function expectedCtr(pos) {
+  const p = Math.round(pos);
+  if (p <= 1) return EXPECTED_CTR[1];
+  if (p >= 10) return pos <= 20 ? 1.5 : 0.5;
+  return EXPECTED_CTR[p] || 1.5;
+}
+
+function ctrGap(pos, actualCtr) {
+  const exp = expectedCtr(pos);
+  const diff = actualCtr - exp;
+  const pct = Math.abs(diff / exp * 100).toFixed(0);
+  if (diff < -5) return { label: `▼ ${pct}% below`, cls: 'ctr-bad', tip: `Expected ~${exp}% at pos ${pos.toFixed(1)}` };
+  if (diff > 5)  return { label: `▲ ${pct}% above`, cls: 'ctr-good', tip: `Expected ~${exp}% at pos ${pos.toFixed(1)}` };
+  return { label: `≈ expected`, cls: 'ctr-ok', tip: `Expected ~${exp}% at pos ${pos.toFixed(1)}` };
+}
+
+function opportunityScore(pos, impressions) {
+  if (pos >= 4 && pos <= 15 && impressions >= 500) return 'quick-win';
+  if (pos >= 4 && pos <= 15 && impressions >= 100) return 'watch';
+  return null;
+}
+
 let rankingsData = [];
 let rankingsSort = { col: 'position', dir: 'asc' };
+
+// localStorage keys
+const LS_CURRENT = 'gsc_current';
+const LS_PREVIOUS = 'gsc_previous';
+const LS_CURRENT_DATE = 'gsc_current_date';
+const LS_PREVIOUS_DATE = 'gsc_previous_date';
+
+function getTrend(query) {
+  try {
+    const prev = JSON.parse(localStorage.getItem(LS_PREVIOUS) || '[]');
+    const prevRow = prev.find(r => r.query === query);
+    if (!prevRow) return null;
+    return prevRow.position; // previous position value
+  } catch { return null; }
+}
+
+function trendHtml(currentPos, prevPos) {
+  if (prevPos === null) return '<span class="trend-none" title="No previous data">—</span>';
+  const delta = prevPos - currentPos; // positive = improved (lower position number)
+  if (Math.abs(delta) < 0.5) return '<span class="trend-flat" title="No change">→</span>';
+  if (delta > 0) return `<span class="trend-up" title="Was #${prevPos.toFixed(1)}">▲ ${delta.toFixed(1)}</span>`;
+  return `<span class="trend-down" title="Was #${prevPos.toFixed(1)}">▼ ${Math.abs(delta).toFixed(1)}</span>`;
+}
 
 const DEMO_RANKINGS = [
   { query: 'esim japan', page: '/esim-japan', position: 4.2, impressions: 1840, clicks: 62, ctr: 3.4 },
@@ -282,6 +329,20 @@ const DEMO_RANKINGS = [
   { query: 'airalo japan alternative', page: '/esim-japan', position: 7.8, impressions: 720, clicks: 21, ctr: 2.9 },
   { query: 'holafly vs airalo japan', page: '/esim-japan', position: 3.1, impressions: 430, clicks: 38, ctr: 8.8 },
   { query: 'cheap esim japan', page: '/esim-japan', position: 9.4, impressions: 580, clicks: 14, ctr: 2.4 },
+];
+
+// Seed demo previous data so trend arrows are visible on first load
+const DEMO_PREVIOUS = [
+  { query: 'esim japan', position: 6.1 },
+  { query: 'japan esim plans', position: 7.9 },
+  { query: 'best esim for japan', position: 14.2 },
+  { query: 'esim turkey', position: 17.0 },
+  { query: 'turkey esim plans', position: 24.5 },
+  { query: 'esim saudi arabia', position: 29.8 },
+  { query: 'esim uae', position: 31.2 },
+  { query: 'airalo japan alternative', position: 6.9 },
+  { query: 'holafly vs airalo japan', position: 3.0 },
+  { query: 'cheap esim japan', position: 11.1 },
 ];
 
 function posBadge(pos) {
@@ -306,13 +367,17 @@ function renderRankingsStats(data) {
   const totalImpressions = data.reduce((s, r) => s + r.impressions, 0);
   const avgCtr = totalImpressions ? ((totalClicks / totalImpressions) * 100).toFixed(1) : '0.0';
   const top10 = data.filter(r => r.position <= 10).length;
+  const quickWins = data.filter(r => opportunityScore(r.position, r.impressions) === 'quick-win').length;
+  const prevDate = localStorage.getItem(LS_PREVIOUS_DATE);
+  const curDate = localStorage.getItem(LS_CURRENT_DATE);
   statsEl.innerHTML = `
-    <div class="stat-card accent"><div class="stat-label">Keywords tracked</div><div class="stat-value">${data.length}</div></div>
-    <div class="stat-card"><div class="stat-label">Avg position</div><div class="stat-value">${avgPos}</div></div>
+    <div class="stat-card accent"><div class="stat-label">Keywords tracked</div><div class="stat-value">${data.length}</div>${curDate ? `<div class="stat-sub">${curDate}</div>` : ''}</div>
+    <div class="stat-card"><div class="stat-label">Avg position</div><div class="stat-value">${avgPos}</div>${prevDate ? `<div class="stat-sub">vs ${prevDate}</div>` : ''}</div>
     <div class="stat-card"><div class="stat-label">Total clicks</div><div class="stat-value">${totalClicks.toLocaleString()}</div></div>
     <div class="stat-card"><div class="stat-label">Impressions</div><div class="stat-value">${totalImpressions.toLocaleString()}</div></div>
     <div class="stat-card"><div class="stat-label">Avg CTR</div><div class="stat-value">${avgCtr}%</div></div>
     <div class="stat-card"><div class="stat-label">On page 1</div><div class="stat-value">${top10}</div><div class="stat-sub">of ${data.length} keywords</div></div>
+    <div class="stat-card" style="border-color:var(--warn)"><div class="stat-label">Quick wins</div><div class="stat-value" style="color:var(--warn)">${quickWins}</div><div class="stat-sub">pos 4–15, 500+ impr.</div></div>
   `;
 }
 
@@ -323,26 +388,35 @@ function renderRankingsTable(data) {
   empty.style.display = 'none';
   table.style.display = '';
 
-  // Sort
   const sorted = [...data].sort((a, b) => {
     let av = a[rankingsSort.col], bv = b[rankingsSort.col];
     if (typeof av === 'string') av = av.toLowerCase(), bv = bv.toLowerCase();
     return rankingsSort.dir === 'asc' ? (av > bv ? 1 : -1) : (av < bv ? 1 : -1);
   });
 
-  document.getElementById('rankings-body').innerHTML = sorted.map(r => `
-    <tr>
-      <td>${r.query}</td>
-      <td><span class="page-slug">${r.page}</span></td>
-      <td>${posBadge(r.position)}</td>
-      <td>${r.impressions.toLocaleString()}</td>
-      <td>${r.clicks.toLocaleString()}</td>
-      <td>${r.ctr.toFixed(1)}%</td>
-      <td>${posStatus(r.position)}</td>
-    </tr>
-  `).join('');
+  document.getElementById('rankings-body').innerHTML = sorted.map(r => {
+    const prevPos = getTrend(r.query);
+    const gap = ctrGap(r.position, r.ctr);
+    const opp = opportunityScore(r.position, r.impressions);
+    const oppHtml = opp === 'quick-win'
+      ? '<span class="opp-badge opp-quickwin" title="Position 4–15 with 500+ impressions — one good update away from page 1">⚡ Quick Win</span>'
+      : opp === 'watch'
+      ? '<span class="opp-badge opp-watch" title="Position 4–15, building impressions">👀 Watch</span>'
+      : '';
+    return `
+      <tr class="${opp === 'quick-win' ? 'row-quickwin' : ''}">
+        <td>${r.query} ${oppHtml}</td>
+        <td><span class="page-slug">${r.page}</span></td>
+        <td>${posBadge(r.position)}</td>
+        <td>${trendHtml(r.position, prevPos)}</td>
+        <td>${r.impressions.toLocaleString()}</td>
+        <td>${r.clicks.toLocaleString()}</td>
+        <td>${r.ctr.toFixed(1)}%<br><span class="${gap.cls}" title="${gap.tip}">${gap.label}</span></td>
+        <td>${posStatus(r.position)}</td>
+      </tr>
+    `;
+  }).join('');
 
-  // Update sort icons
   document.querySelectorAll('#rankings-table th.sortable').forEach(th => {
     th.classList.remove('sort-active');
     if (th.dataset.col === rankingsSort.col) th.classList.add('sort-active');
@@ -359,6 +433,7 @@ function applyRankingsFilters() {
     if (pos === 'top10' && r.position > 10) return false;
     if (pos === 'top20' && (r.position <= 10 || r.position > 20)) return false;
     if (pos === 'beyond' && r.position <= 20) return false;
+    if (pos === 'quickwin' && opportunityScore(r.position, r.impressions) !== 'quick-win') return false;
     if (page !== 'all' && r.page !== page) return false;
     return true;
   });
@@ -366,9 +441,20 @@ function applyRankingsFilters() {
   renderRankingsTable(filtered);
 }
 
-function loadRankingsData(data) {
+function loadRankingsData(data, isDemo = false) {
+  if (!isDemo) {
+    // Rotate: current → previous, new data → current
+    const existing = localStorage.getItem(LS_CURRENT);
+    if (existing) {
+      localStorage.setItem(LS_PREVIOUS, existing);
+      localStorage.setItem(LS_PREVIOUS_DATE, localStorage.getItem(LS_CURRENT_DATE) || '');
+    }
+    const today = new Date().toISOString().slice(0, 10);
+    localStorage.setItem(LS_CURRENT, JSON.stringify(data));
+    localStorage.setItem(LS_CURRENT_DATE, today);
+  }
+
   rankingsData = data;
-  // Populate page filter
   const pages = [...new Set(data.map(r => r.page))].sort();
   const sel = document.getElementById('rankings-page-filter');
   sel.innerHTML = '<option value="all">All pages</option>' +
@@ -377,7 +463,6 @@ function loadRankingsData(data) {
 }
 
 function parseGscCsv(text) {
-  // GSC exports prepend several lines starting with # before the actual header
   const lines = text.trim().split('\n').filter(l => l.trim() && !l.trim().startsWith('#'));
   if (!lines.length) return [];
   const header = lines[0].split(',').map(h => h.replace(/"/g, '').trim().toLowerCase());
@@ -405,7 +490,7 @@ function parseGscCsv(text) {
   return rows;
 }
 
-// CSV upload
+// CSV upload — saves previous, loads new
 document.getElementById('gsc-upload').addEventListener('change', e => {
   const file = e.target.files[0];
   if (!file) return;
@@ -413,7 +498,7 @@ document.getElementById('gsc-upload').addEventListener('change', e => {
   reader.onload = ev => {
     const parsed = parseGscCsv(ev.target.result);
     if (!parsed.length) { alert('Could not parse file. Make sure it\'s a GSC CSV export (Queries tab).'); return; }
-    loadRankingsData(parsed);
+    loadRankingsData(parsed, false);
   };
   reader.readAsText(file);
   e.target.value = '';
@@ -432,12 +517,10 @@ document.querySelectorAll('#rankings-table th.sortable').forEach(th => {
   });
 });
 
-// Filters
 document.getElementById('rankings-filter').addEventListener('input', applyRankingsFilters);
 document.getElementById('rankings-pos-filter').addEventListener('change', applyRankingsFilters);
 document.getElementById('rankings-page-filter').addEventListener('change', applyRankingsFilters);
 
-// Help box toggle
 document.getElementById('btn-gsc-help').addEventListener('click', () => {
   const box = document.getElementById('gsc-help-box');
   box.style.display = box.style.display === 'none' ? 'block' : 'none';
@@ -451,4 +534,9 @@ renderPages();
 renderPricingTable();
 renderCompetitorTable();
 populateCountrySelect();
-loadRankingsData(DEMO_RANKINGS);
+// Seed demo previous data so trend arrows show on first load
+if (!localStorage.getItem(LS_PREVIOUS)) {
+  localStorage.setItem(LS_PREVIOUS, JSON.stringify(DEMO_PREVIOUS));
+  localStorage.setItem(LS_PREVIOUS_DATE, 'demo prev');
+}
+loadRankingsData(DEMO_RANKINGS, true);
