@@ -144,14 +144,14 @@ function openPageModal(p) {
 // Simple markdown-to-HTML renderer
 function renderMarkdown(md, container) {
   let html = md
-    .replace(/^# (.+)$/gm, '<h2>$1</h2>')
+    .replace(/^# (.+)$/gm, '<h1>$1</h1>')
     .replace(/^## (.+)$/gm, '<h2>$1</h2>')
     .replace(/^### (.+)$/gm, '<h3>$1</h3>')
     .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
     .replace(/\*(.+?)\*/g, '<em>$1</em>');
 
-  // tables
-  html = html.replace(/((\|.+\|\n)+)/g, match => {
+  // tables — use \n? so the last row (no trailing newline) is included
+  html = html.replace(/((\|.+\|\n?)+)/g, match => {
     const rows = match.trim().split('\n').filter(r => !/^[\|\s\-:]+$/.test(r));
     const tableRows = rows.map((row, i) => {
       const cells = row.split('|').filter((_, j, a) => j > 0 && j < a.length - 1);
@@ -194,7 +194,7 @@ function renderPricingTable() {
 
 // ----- Competitor table -----
 function renderCompetitorTable() {
-  const today = new Date('2026-06-11');
+  const today = new Date();
   const keys = ['country', 'competitor', 'plan_name', 'data_gb', 'price_gbp', 'tethering', 'checked_date'];
   const headers = ['Country', 'Competitor', 'Plan', 'Data', 'Price', 'Hotspot', 'Last Checked'];
   const table = document.getElementById('competitor-table');
@@ -377,7 +377,8 @@ function loadRankingsData(data) {
 }
 
 function parseGscCsv(text) {
-  const lines = text.trim().split('\n').filter(Boolean);
+  // GSC exports prepend several lines starting with # before the actual header
+  const lines = text.trim().split('\n').filter(l => l.trim() && !l.trim().startsWith('#'));
   if (!lines.length) return [];
   const header = lines[0].split(',').map(h => h.replace(/"/g, '').trim().toLowerCase());
   const qIdx = header.findIndex(h => h.includes('query') || h.includes('top queries'));
